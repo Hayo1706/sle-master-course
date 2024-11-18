@@ -153,7 +153,7 @@ Lab: pick one of the following language extensions and modify/evolve/extend *all
     ```
 Think about how the type checker should deal with the constants vs. question names. 
 
-- Data validation plus errors on answerable questions: non-emptiness, ranges for integers, regular expression for string. At run-time these constraints should be checked, and the user should be notified. Possible syntax:
+- Data validation plus errors on answerable questions: non-emptiness, ranges for integers (which may refer to integer-typed questions), regular expression for string. At run-time these constraints should be checked, and the user should be notified. Possible syntax:
     ```
     "What is your age?" age: integer [1..99] // an integer range
     "What is your name?" name: string [required] // i.e. cannot be empty
