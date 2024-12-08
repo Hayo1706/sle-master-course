@@ -1,7 +1,8 @@
 module Resolve
+extend lang::std::Id;
 
 import Syntax;
-
+import IO;
 /*
  * Name resolution for QL
  */ 
@@ -26,9 +27,29 @@ RefGraph resolve(start[Form] f) = <us, ds, us o ds>
   when Use us := uses(f), Def ds := defs(f);
 
 Use uses(start[Form] f) {
-  return {}; 
+  Use use = {};
+  visit(f){
+    case (Expr) `<Expr e>`:
+      if (e is var){
+         use = use + <e.name.src, "<e.name>">;
+      }
+
+  }
+  return use;
 }
 
+
 Def defs(start[Form] f) {
-  return {}; 
+  Def def = {};
+  visit(f){
+    case (Question) `<Question q>`:
+      if (q is answerable || q is computed){
+         def = def + <"<q.name>", q.name.src>;
+      }
+
+  }
+  return def;
 }
+
+//start[Form] a = parse(#start[Form], |project://sle-master-course/examples/tax.myql|);
+//resolve(a)
