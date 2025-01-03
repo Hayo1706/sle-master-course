@@ -15,7 +15,16 @@ syntax Type = "*unknown*";
 alias TEnv = lrel[str, Type];
 
 // build a Type Environment (TEnv) for a questionnaire.
-TEnv collect(Form f) = [ ];
+TEnv collect(Form f) {
+  TEnv env = [];
+  visit(f) {
+    case (Question) `<Question q>`:
+      if (q is answerable || q is computed){
+        env = env + <"<q.name>", q.anstype>;
+      }
+  }
+  return env;
+}
 
 
 /*
@@ -42,11 +51,51 @@ set[Message] check(Form form)
   when TEnv env := collect(form);
 
 set[Message] checkCycles(Form form) {
-    return {};
+    set[Message] messages = {};
+    list[str] defined = []; // Tracks the list of questions defined so far.
+
+    visit(form) {
+        // Handle normal questions
+        case (Question)`<Str _> <Id name> : <Type _>`:
+            defined += "<name>";
+
+        // Handle computed questions.
+        case (Question)`<Str _> <Id name> : <Type _> = <Expr _>`:
+        {
+            defined += "<name>";
+        }
+
+        // Handle expressions
+        case (Expr)`<Id ref>`:
+            if ("<ref>" notin defined) {
+                messages += error("Reference to undefined or later question: <ref>", ref.src);
+            }
+    }
+
+    return messages;
 }
 
 set[Message] checkDuplicates(Form form) {
-    return {};
+    set[Message] messages = {};
+    list[str] defined = []; // Tracks the list of questions defined so far.
+    visit(form) {
+        // Handle normal questions
+        case (Question)`<Str _> <Id name> : <Type _>`:
+        {
+            if ("<name>" in defined)
+                messages += error("Duplicate question: <name>", name.src);
+            defined += "<name>";
+        }
+
+        // Handle computed questions.
+        case (Question)`<Str _> <Id name> : <Type _> = <Expr _>`:
+        {
+            if ("<name>" in defined)
+                messages += error("Duplicate question: <name>", name.src);
+            defined += "<name>";
+        }
+    }
+    return messages;
 }
 
 /*

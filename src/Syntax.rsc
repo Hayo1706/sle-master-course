@@ -23,9 +23,9 @@ syntax Type
 syntax Question 
   = ifThen: "if" "(" Expr cond ")" Question then () !>> "else" 
   | ifThenElse: "if" "(" Expr cond ")" Question then () "else" Question else
-  | answerable: Str question Id name ":" Type type
+  | answerable: Str question Id name ":" Type anstype
   | block: "{" Question* questions "}"
-  | computed: Str text Id name ":" Type type "=" Expr expr
+  | computed: Str text Id name ":" Type anstype "=" Expr expr
   ;
 
 // TODO: +, -, *, /, &&, ||, !, >, <, <=, >=, ==, !=, literals (bool, int, str)
