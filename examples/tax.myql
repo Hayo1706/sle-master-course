@@ -7,7 +7,7 @@ form "Tax Office example" {
     
   "Did you sell a house in 2010?"
     hasSoldHouse: boolean    
-   
+  
   if (hasSoldHouse) {
     "What was the selling price?"
       sellingPrice: integer
@@ -15,6 +15,5 @@ form "Tax Office example" {
       privateDebt: integer
     "Value residue:"
       valueResidue: integer = sellingPrice - privateDebt
-      
   }
 }

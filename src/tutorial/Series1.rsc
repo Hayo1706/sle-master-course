@@ -163,7 +163,7 @@ int sumLeavesWithVisit(ColoredTree t) {
 // same, but now with a for loop and deep match
 int sumLeavesWithFor(ColoredTree t) {
   int c = 0;
-  for (/leaf(int n) := t){
+  for (leaf(int n) := t){
     c = c + n;
   }
   return c;

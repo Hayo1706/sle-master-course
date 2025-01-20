@@ -5,8 +5,10 @@ import salix::App;
 import salix::Core;
 import salix::Index;
 
+
 import Eval;
 import Syntax;
+import IO;
 
 import String;
 
@@ -45,10 +47,67 @@ Model update(Msg msg, Model model) = model[env=eval(model.form, msg2input(msg), 
 // nesting of void-closures.
 void view(Model model) {
     h3("<model.form.top.title>"[1..-1]);
-    // fill in the rest
+    ul(() {
+        // Render each enabled question
+        list[Question] enabledQuestions = render(model.form, model.env);
+        for (Question q <- enabledQuestions) {
+            li(() { viewQuestion(q, model); });
+        }
+    });
 }
+Msg(str) updateInt(str name) = Msg(str n) { return updateInt(name, n);};
 
 // fill in: question rendering, but only if they are enabled.
 void viewQuestion(Question q, Model model) {
-
+      switch (q) {
+        case answerable(Str question, Id name, Type anstype): {
+            
+            // Render input fields for answerable questions
+            label("<question>"[1..-1]);
+                switch (anstype) {
+                    case (Type)`boolean`:{
+                        input(
+                            \type("checkbox"),
+                            \checked(model.env["<name>"] == vbool(true)),
+                            \onClick(updateBool("<name>", !model.env["<name>"].b))
+                        );
+                        
+                    }
+                    case (Type)`integer`:
+                        input(
+                            \type("number"),
+                            \value("<model.env["<name>"].n>"),
+                            \onChange(updateInt("<name>"))
+                        );
+                    case (Type)`string`:
+                        input(
+                            \type("text"),
+                            \value("<model.env["<name>"].s>")
+                        );
+                }
+        }
+        case computed(Str text, Id name, Type anstype, Expr expr): {
+            // Render read-only fields for computed questions
+            label("<text>"[1..-1]);
+            str val = "";
+            switch (anstype) {
+                    case (Type)`boolean`:{
+                        val = "<eval(expr, model.env).b>";
+                    }
+                    case (Type)`integer`:
+                        val = "<eval(expr, model.env).n>";
+                    case (Type)`string`:
+                        val = "<eval(expr, model.env).s>";
+                }
+            span(val);
+        }
+        case block(Question* subQuestions): {
+            // Recursively render sub-questions in a block
+            ul(() {
+                for (Question sub <- subQuestions) {
+                    li(() { viewQuestion(sub, model); });
+                }
+            });
+        }
+    }
 }

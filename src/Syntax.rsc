@@ -10,7 +10,7 @@ lexical Str = [\"]![\"]* [\"];
 
 lexical Bool = "true" | "false";
 
-lexical Int = [\-]* [0-9]+; 
+lexical Int = [\-]? [0-9]+; 
 
 // boolean, integer, string
 syntax Type   
@@ -18,14 +18,19 @@ syntax Type
   | integer: "integer"
   | string: "string";
 
+syntax ValidationRule
+  = required : "[required]"
+  | range : "[" Expr min ".." Expr max "]"
+  | regex : "[" [\\] ![\n]* [\\] "]";
+
 
 // TODO: answerable question, computed question, block, if-then-else
 syntax Question 
-  = ifThen: "if" "(" Expr cond ")" Question then () !>> "else" 
-  | ifThenElse: "if" "(" Expr cond ")" Question then () "else" Question else
-  | answerable: Str question Id name ":" Type anstype
+  = ifThen: "if" "(" Expr cond ")" Question then !>> "else" 
+  | ifThenElse: "if" "(" Expr cond ")" Question then "else" Question elsethen
+  | answerable: Str question Id name ":" Type anstype ValidationRule? rule
   | block: "{" Question* questions "}"
-  | computed: Str text Id name ":" Type anstype "=" Expr expr
+  | computed: Str question Id name ":" Type anstype "=" Expr expr
   ;
 
 // TODO: +, -, *, /, &&, ||, !, >, <, <=, >=, ==, !=, literals (bool, int, str)
@@ -34,7 +39,8 @@ syntax Question
 syntax Expr
   = var: Id name \ "true" \"false"
   | Str | Bool | Int |
-  | bracket "(" Expr ")"       
+  | bracket "(" Expr ")"
+  | "!" Expr       
     > right Expr "^" Expr
     > left ( Expr "*" Expr  
            | Expr "/" Expr
@@ -46,11 +52,9 @@ syntax Expr
            | Expr "\<" Expr
            | Expr "\<=" Expr
            | Expr "\>=" Expr
-           )
-    > left ( Expr "==" Expr
+           | Expr "==" Expr
            | Expr "!=" Expr
            )
-    > right "!" Expr
     > left Expr "&&" Expr
     > left Expr "||" Expr
   ;

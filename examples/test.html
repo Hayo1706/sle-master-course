@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Office Example Form</title>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+</head>
+<body>
+    <h1>Tax Office Example Form</h1>
+    <form id="taxForm">
+        <label>Did you buy a house in 2010?</label>
+        <input type="checkbox" id="hasBoughtHouse" name="hasBoughtHouse">
+
+        <label>Did you enter a loan?</label>
+        <input type="checkbox" id="hasMaintLoan" name="hasMaintLoan">
+
+        <label>Did you sell a house in 2010?</label>
+        <input type="checkbox" id="hasSoldHouse" name="hasSoldHouse">
+
+        <div id="sellingForm" class="hidden">
+            <label for="sellingPrice">What was the selling price?</label>
+            <input type="number" id="sellingPrice" name="sellingPrice">
+
+            <label for="privateDebt">Private debts for the sold house:</label>
+            <input type="number" id="privateDebt" name="privateDebt">
+
+            <label>Value residue:</label>
+            <input type="number" id="valueResidue" name="valueResidue" disabled>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        // Map to store all form values
+        const formValues = new Map();
+
+        // Function to update the map whenever any input changes
+        function updateFormValues(e) {
+            const target = e.target;
+            const key = target.name;
+            const value = target.type === 'checkbox' ? target.checked : target.value;
+
+            formValues.set(key, value);
+
+            // Check if "hasSoldHouse" is true to show relevant fields and perform calculations
+            if (formValues.get('hasSoldHouse')) {
+                const sellingPrice = formValues.get('sellingPrice');
+                const privateDebt = formValues.get('privateDebt');
+
+                if (sellingPrice && privateDebt) {
+                    const valueResidue = Number(sellingPrice) - Number(privateDebt);
+                    document.getElementById('valueResidue').value = valueResidue;
+                }
+            }
+        }
+
+        // Event listeners for all input changes
+        document.getElementById('taxForm').addEventListener('change', updateFormValues);
+    </script>
+
+</body>
+</html>
