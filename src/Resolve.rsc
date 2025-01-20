@@ -23,8 +23,7 @@ alias RefGraph = tuple[
   UseDef useDef
 ]; 
 
-RefGraph resolve(start[Form] f) = <us, ds, us o ds>
-  when Use us := uses(f), Def ds := defs(f);
+RefGraph resolve(start[Form] f) = <us, ds, us o ds> when Use us := uses(f), Def ds := defs(f);
 
 Use uses(start[Form] f) {
   Use use = {};
@@ -51,6 +50,9 @@ Def defs(start[Form] f) {
   return def;
 }
 
-
-//start[Form] a = parse(#start[Form], |project://sle-master-course/examples/tax.myql|);
+// import Syntax;
+// import ParseTree;
+// start[Form] a = parse(#start[Form], |project://sle-master-course/examples/tax.myql|);
 //resolve(a)
+// start[Tests] a = parse(#start[Tests], |project://sle-master-course/src/checktests.testql|);
+// start[Tests] b = parse(#start[Tests], |project://sle-master-course/src/evaltests.testql|);
