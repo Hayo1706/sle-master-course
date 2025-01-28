@@ -22,54 +22,23 @@ str type2default((Type)`integer`) = "0";
 str type2default((Type)`string`) = "";
 str type2default((Type)`boolean`) = "false";
 
+data Jenv = output(str venvinit, str calculations, str setContent, int ifs);
+
 
 str compile2js(start[Form] form) {
-  str venvinit = "venv = new Map([";
-  str calculations = "function calculate(){";
-  str setContent = "function setContent(){";
-
-  int ifs = 0;
+  Jenv jenv = output("venv = new Map([", "function calculate(){", "function setContent(){", 0);
   
   visit(form.top.questions){
-    case (Question) `<Question q>`:{
-      if (q is answerable){
-        venvinit += "\n\t[\"<q.name>\",<type2default(q.anstype)>],";
-      }
-      if (q is computed){
-        venvinit += "\n\t[\"<q.name>\",<type2default(q.anstype)>],";
-        calculations += "\n\tvenv.set(\"<q.name>\", <compileExpr(q.expr)>);";
-        setContent += "\n\tdocument.getElementsByName(\"<q.name>\")[0].textContent = venv.get(\"<q.name>\");";
-      }
-      if(q is ifThen){
-        venvinit += "\n\t[\"ifcondition<ifs>\",false],";
-        calculations += "\n\tvenv.set(\"ifcondition<ifs>\", <compileExpr(q.cond)>);";
-        setContent += "\n\tdocument.getElementsByName(\"ifcondition<ifs>\")[0].style.visibility = 
-                          <compileExpr(q.cond)> ? \"visible\" : \"hidden\";";
-
-        ifs += 1;
-      }
-      if (q is ifThenElse){
-        venvinit += "\n\t[\"ifcondition<ifs>\",false],";
-        venvinit += "\n\t[\"ifcondition<ifs>-else\",<type2default(q.anstype)>],";
-        calculations += "\n\tvenv.set(ifcondition<ifs>, <compileExpr(q.cond)>);";
-        setContent += "\n\tif (<q.cond>){
-    document.getElementsByName(\"ifcondition<ifs>\")[0].style.visibility = \"visible\";
-    document.getElementsByName(\"ifcondition<ifs>-else\")[0].style.visibility = \"hidden\";
-    }
-  else{
-    \tdocument.getElementsByName(\"ifcondition<ifs>\")[0].style.visibility = \"hidden\";
-    \tdocument.getElementsByName(\"ifcondition<ifs>-else\")[0].style.visibility = \"visible\";
-  }";
-        ifs += 1;
-      }
-    }
+    case (Question) `<Question q>`:
+        jenv = compile2js(q, jenv);
   }
-  venvinit += "\n]);\n\n";
-  calculations += "\n}\n\n";
-  setContent += "\n}\n\n";
+
+  jenv.venvinit += "\n]);\n\n";
+  jenv.calculations += "\n}\n\n";
+  jenv.setContent += "\n}\n\n";
 
   js = "";
-  js += venvinit;
+  js += jenv.venvinit;
   js += "const mapsAreEqual = (m1, m2) =\> m1.size === m2.size && Array.from(m1.keys()).every((key) =\> m1.get(key) === m2.get(key));\n\n";
   js += "window.onload = update();\n\n";
   js += "function evaluateInput(value, id) {
@@ -80,8 +49,8 @@ str compile2js(start[Form] form) {
   solve();
   setContent();
 }\n\n";
-  js += calculations;
-  js += setContent;
+  js += jenv.calculations;
+  js += jenv.setContent;
   js += "function solve(){
   do {
     temp = venv;
@@ -91,38 +60,82 @@ str compile2js(start[Form] form) {
   return js;
 }
 
-str compileExpr(Expr e) {
-    switch (e) {
-        case (Expr)`<Id x>`: return "venv.get(\"<x>\")";
-        case (Expr)`<Str x>`: return "<x>";
-        case (Expr)`<Bool x>`: return "<x>" == "true" ? "true" : "false";
-        case (Expr)`<Int x>`: return "<x>";
-        case (Expr)`<Expr left> + <Expr right>`: return "(Number(<compileExpr(left)>) + Number(<compileExpr(right)>))";
-        case (Expr)`<Expr left> - <Expr right>`: return "(Number(<compileExpr(left)>) - Number(<compileExpr(right)>))";
-        case (Expr)`<Expr left> * <Expr right>`: return "(Number(<compileExpr(left)>) * Number(<compileExpr(right)>))";
-        case (Expr)`<Expr left> / <Expr right>`: return "(Number(<compileExpr(left)>) / Number(<compileExpr(right)>))";
-        case (Expr)`<Expr left> ^ <Expr right>`: return "Math.pow(Number(<compileExpr(left)>), Number(<compileExpr(right)>))";
-        case (Expr)`<Expr left> && <Expr right>`: return "(<compileExpr(left)> && <compileExpr(right)>)";
-        case (Expr)`<Expr left> || <Expr right>`: return "(<compileExpr(left)> || <compileExpr(right)>)";
-        case (Expr)`<Expr left> == <Expr right>`: return "(<compileExpr(left)> == <compileExpr(right)>)";
-        case (Expr)`<Expr left> != <Expr right>`: return "(<compileExpr(left)> != <compileExpr(right)>)";
-        case (Expr)`<Expr left> \> <Expr right>`: return "(<compileExpr(left)> \> <compileExpr(right)>)";
-        case (Expr)`<Expr left> \< <Expr right>`: return "(<compileExpr(left)> \< <compileExpr(right)>)";
-        case (Expr)`<Expr left> \>= <Expr right>`: return "(<compileExpr(left)> \>= <compileExpr(right)>)";
-        case (Expr)`<Expr left> \<= <Expr right>`: return "(<compileExpr(left)> \<= <compileExpr(right)>)";
+default Jenv compile2js(Question q, Jenv jenv) = jenv;
 
-        case (Expr)`! <Expr operand>`: return "(!<compileExpr(operand)>)";
-    }
-    return "";
+Jenv compile2js((Question)`if (<Expr cond>) <Question then>`, Jenv jenv) {
+  jenv.venvinit += "\n\t[\"ifcondition<jenv.ifs>\",false],";
+  jenv.calculations += "\n\tvenv.set(\"ifcondition<jenv.ifs>\", <compileExpr(cond)>);";
+  jenv.setContent += "\n\tdocument.getElementsByName(\"ifcondition<jenv.ifs>\")[0].style.visibility = <compileExpr(cond)> ? \"visible\" : \"hidden\";";
+  jenv.setContent += "\n\tArray.prototype.forEach.call(document.getElementsByName(\"ifcondition<jenv.ifs>\")[0].getElementsByTagName(\"input\"),target =\> target.disabled = !<compileExpr(cond)>);";
+  return jenv;
 }
 
+Jenv compile2js((Question)`if (<Expr cond>) <Question then> else <Question elsethen>`, Jenv jenv) {
+  jenv.venvinit += "\n\t[\"ifcondition<jenv.ifs>\",false],";
+  jenv.venvinit += "\n\t[\"ifcondition<jenv.ifs>-else\",true],";
+  jenv.calculations += "\n\tvenv.set(ifcondition<jenv.ifs>, <compileExpr(cond)>);";
+  jenv.setContent += "\n\tif (<cond>){
+    document.getElementsByName(\"ifcondition<jenv.ifs>\")[0].style.visibility = \"visible\";
+    document.getElementsByName(\"ifcondition<jenv.ifs>-else\")[0].style.visibility = \"hidden\";
+    }
+    else{
+      document.getElementsByName(\"ifcondition<jenv.ifs>\")[0].style.visibility = \"hidden\";
+      document.getElementsByName(\"ifcondition<jenv.ifs>-else\")[0].style.visibility = \"visible\";
+    }";
+  jenv.ifs += 1;  
+  return jenv;
+}
+
+Jenv compile2js((Question)`<Str question> <Id name> : <Type anstype>`, Jenv jenv) {
+  jenv.venvinit += "\n\t[\"<name>\",<type2default(anstype)>],";
+  return jenv;
+}
+
+Jenv compile2js((Question)`<Str question> <Id name> : <Type anstype> = <Expr expr>`, Jenv jenv) {
+  jenv.venvinit += "\n\t[\"<name>\",<type2default(anstype)>],";
+  jenv.calculations += "\n\tvenv.set(\"<name>\", <compileExpr(expr)>);";
+  jenv.setContent += "\n\tdocument.getElementsByName(\"<name>\")[0].textContent = venv.get(\"<name>\");";
+  return jenv;
+}
+
+str compileExpr(Expr e) {
+  switch (e) {
+      case (Expr)`<Id x>`: return "venv.get(\"<x>\")";
+      case (Expr)`<Str x>`: return "<x>";
+      case (Expr)`<Bool x>`: return "<x>" == "true" ? "true" : "false";
+      case (Expr)`<Int x>`: return "<x>";
+      case (Expr)`<Expr left> + <Expr right>`: return "(Number(<compileExpr(left)>) + Number(<compileExpr(right)>))";
+      case (Expr)`<Expr left> - <Expr right>`: return "(Number(<compileExpr(left)>) - Number(<compileExpr(right)>))";
+      case (Expr)`<Expr left> * <Expr right>`: return "(Number(<compileExpr(left)>) * Number(<compileExpr(right)>))";
+      case (Expr)`<Expr left> / <Expr right>`: return "(Number(<compileExpr(left)>) / Number(<compileExpr(right)>))";
+      case (Expr)`<Expr left> ^ <Expr right>`: return "Math.pow(Number(<compileExpr(left)>), Number(<compileExpr(right)>))";
+      case (Expr)`<Expr left> && <Expr right>`: return "(<compileExpr(left)> && <compileExpr(right)>)";
+      case (Expr)`<Expr left> || <Expr right>`: return "(<compileExpr(left)> || <compileExpr(right)>)";
+      case (Expr)`<Expr left> == <Expr right>`: return "(<compileExpr(left)> == <compileExpr(right)>)";
+      case (Expr)`<Expr left> != <Expr right>`: return "(<compileExpr(left)> != <compileExpr(right)>)";
+      case (Expr)`<Expr left> \> <Expr right>`: return "(<compileExpr(left)> \> <compileExpr(right)>)";
+      case (Expr)`<Expr left> \< <Expr right>`: return "(<compileExpr(left)> \< <compileExpr(right)>)";
+      case (Expr)`<Expr left> \>= <Expr right>`: return "(<compileExpr(left)> \>= <compileExpr(right)>)";
+      case (Expr)`<Expr left> \<= <Expr right>`: return "(<compileExpr(left)> \<= <compileExpr(right)>)";
+
+      case (Expr)`! <Expr operand>`: return "(!<compileExpr(operand)>)";
+  }
+  return "";
+}
+int H_ifs = 0;
+
 HTMLElement compile2html(start[Form] f) {
+  H_ifs = 0;
   list[HTMLElement] elems = [];
 
   for (Question q <- f.top.questions){
     elems += compile2html(q);
   }
+  HTMLElement submit = input();
+  submit.\type = "submit";
+  submit.\value = "Submit";
 
+  elems += submit;
   // Return the complete HTML structure wrapped in a form element
   HTMLElement questions = form(elems);
 
@@ -135,64 +148,59 @@ HTMLElement compile2html(start[Form] f) {
   scr.defer = "true";
   
 
-  HTMLElement tit = title([text("<f.top.title>")]);
+  HTMLElement tit = title([text("<f.top.title>"[1..-1])]);
 
-  return html([tit,lin,scr, h3([text("<f.top.title>")]), questions]);
+  return html([tit,lin,scr, h3([text("<f.top.title>"[1..-1])]), questions]);
 }
 
-int ifs = 0;
 
-list[HTMLElement] compile2html(Question q){
-    list[HTMLElement] elems = [];
-    if (q is answerable) {
-          // Create label and input for answerable questions
-          HTMLElement lbl = \label([text("<q.question>")]);
-          HTMLElement inp = input();
-          inp.\type = typeForAnswerable(q); // Determines the input type based on question type
-          inp.\name = "<q.name>"; // Adding the name attribute
-          inp.onchange = "evaluateInput(<inp.\type == "checkbox" ? "this.checked" : "this.value">, this.name)";
-          elems += div([lbl, inp]);
-      }
-      else if (q is computed) {
-        // Create label and input for computed questions
-        HTMLElement lbl = label([text("<q.question>")]);
-        HTMLElement inp = span([]);
-        inp.\type = "text"; // Computed fields are read-only
-        inp.\name = "<q.name>"; // Adding the name attribute
-        inp.\readonly = "true"; // Computed fields should not be editable
-        inp.\value = "1"; // Placeholder for computed values (updated dynamically in JS)
-        elems += div([lbl, inp]);
-      }
-      else if (q is ifThen) {
-        list[HTMLElement] ifthenqs = compile2html(q.then); // Recursively process conditional questions
-        HTMLElement ifdiv = div(ifthenqs);
-        ifdiv.name = "ifcondition<ifs>";
-        ifs += 1;
-        elems += ifdiv;
-        
-      }
-      else if (q is ifThenElse) {
-        list[HTMLElement] ifthenqs = compile2html(q.then); // Recursively process then branch
-        list[HTMLElement] ifelseqs = compile2html(q.elsethen); // Recursively process else branch
-        HTMLElement ifdiv = div(ifthenqs);
-        ifdiv.name = "ifcondition<ifs>";
-        elems += ifdiv;
-        HTMLElement ifelsediv = div(ifelseqs);
-        ifelsediv.name = "ifcondition<ifs>-else";
-        ifs += 1;
-        elems += ifelsediv;
-      }
-      else if (q is block) {
-        // Process blocks of questions
-        for (Question subQ <- q.questions) {
-          elems += compile2html(subQ);
-        }
-      }
-      return elems;
+
+default list[HTMLElement] compile2html(Question q) = [];
+
+list[HTMLElement] compile2html((Question)`if (<Expr cond>) <Question then>`) {
+  list[HTMLElement] ifthenqs = compile2html(then); // Recursively process conditional questions
+  HTMLElement ifdiv = div(ifthenqs);
+  ifdiv.name = "ifcondition<H_ifs>";
+  H_ifs += 1;
+  return [ifdiv];
 }
 
-str typeForAnswerable(Question q) {
-  switch (q.anstype) {
+list[HTMLElement] compile2html((Question)`if (<Expr cond>) <Question then> else <Question elsethen>`) {
+  list[HTMLElement] ifthenqs = compile2html(then); // Recursively process then branch
+  list[HTMLElement] ifelseqs = compile2html(elsethen); // Recursively process else branch
+  HTMLElement ifdiv = div(ifthenqs);
+  ifdiv.name = "ifcondition<H_ifs>";
+  HTMLElement ifelsediv = div(ifelseqs);
+  ifelsediv.name = "ifcondition<H_ifs>-else";
+  H_ifs += 1;
+  return [ifdiv, ifelsediv];
+}
+
+list[HTMLElement] compile2html((Question)`<Str question> <Id name> : <Type anstype>`){
+    // Create label and input for answerable questions
+    HTMLElement lbl = \label([text("<question>"[1..-1])]);
+    HTMLElement inp = input();
+    inp.\type = typeForAnswerable(anstype); // Determines the input type based on question type
+    inp.\name = "<name>"; // Adding the name attribute
+    inp.onchange = "evaluateInput(<inp.\type == "checkbox" ? "this.checked" : "this.value">, this.name)";
+    return [div([lbl, inp])];
+}
+
+list[HTMLElement] compile2html((Question)`{ <Question* questions> }`) = ([] | it + compile2html(q) | q <- questions);
+
+list[HTMLElement] compile2html((Question)`<Str question> <Id name> : <Type anstype> = <Expr expr>`) {
+    // Create label and input for computed questions
+    HTMLElement lbl = label([text("<question>"[1..-1])]);
+    HTMLElement inp = span([]);
+    inp.\type = "text"; // Computed fields are read-only
+    inp.\name = "<name>"; // Adding the name attribute
+    inp.\readonly = "true"; // Computed fields should not be editable
+    inp.\value = "1"; // Placeholder for computed values (updated dynamically in JS)
+    return [div([lbl, inp])];
+}
+
+str typeForAnswerable(Type t) {
+  switch (t) {
     case (Type)`boolean`: return "checkbox";
     case (Type)`integer`: return "number";
     case (Type)`string`: return "text";

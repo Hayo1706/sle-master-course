@@ -6,13 +6,14 @@ form "Tax Office example" {
     hasMaintLoan: boolean
     
   "Did you sell a house in 2010?"
-    hasSoldHouse: boolean    
+    hasSoldHouse: boolean
   
+
   if (hasSoldHouse) {
     "What was the selling price?"
-      sellingPrice: integer
+      sellingPrice: integer 
     "Private debts for the sold house:"
-      privateDebt: integer
+      privateDebt: integer 
     "Value residue:"
       valueResidue: integer = sellingPrice - privateDebt
   }

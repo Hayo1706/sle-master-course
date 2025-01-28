@@ -59,6 +59,7 @@ Value eval((Expr)`<Bool x>`, VEnv venv) = vbool("<x>" == "true");  // Boolean li
 
 Value eval((Expr)`<Int x>`, VEnv venv) = vint(toInt("<x>"));  // Integer literal
 
+
 Value eval((Expr)`(<Expr e>)`, VEnv venv) = eval(e, venv);
 
 // Exponentiation (right-associative)
@@ -114,9 +115,9 @@ VEnv evalOnce(Form f, Input inp, VEnv venv)
 
 VEnv eval(Question q, Input inp, VEnv venv) {
     switch (q) {
-      case answerable(_, Id name, _): {
+      case answerable(_, Id name, _, _): {
         if (inp.question == "<name>") {
-          venv["<q.name>"] = inp.\value;
+          venv["<name>"] = inp.\value;
         }
         return venv;
       }
@@ -170,7 +171,7 @@ list[Question] render(Form form, VEnv venv) {
 
 list[Question] renderQ(Question q, VEnv venv) {
     switch (q) {
-      case answerable(_, Id name, _):
+      case answerable(_, Id name, _, _):
         return [q];
       
 

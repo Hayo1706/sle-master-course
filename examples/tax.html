@@ -1,30 +1,33 @@
 <html>
     <head></head>
-    <title>"Tax Office example"</title>
+    <title>Tax Office example</title>
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
     <script src="tax.js" defer="true"></script>
-    <h3>"Tax Office example"</h3>
+    <h3>Tax Office example</h3>
     <form>
         <div>
-            <label>"Did you buy a house in 2010?"</label><input type="checkbox" name="hasBoughtHouse" onchange="evaluateInput(this.checked, this.name)">
+            <label>Did you buy a house in 2010?</label><input type="checkbox" name="hasBoughtHouse" onchange="evaluateInput(this.checked, this.name)">
         </div>
         <div>
-            <label>"Did you enter a loan?"</label><input type="checkbox" name="hasMaintLoan" onchange="evaluateInput(this.checked, this.name)">
+            <label>Did you enter a loan?</label><input type="checkbox" name="hasMaintLoan" onchange="evaluateInput(this.checked, this.name)">
         </div>
         <div>
-            <label>"Did you sell a house in 2010?"</label><input type="checkbox" name="hasSoldHouse" onchange="evaluateInput(this.checked, this.name)">
+            <label>Did you sell a house in 2010?</label><input type="checkbox" name="hasSoldHouse" onchange="evaluateInput(this.checked, this.name)">
+        </div>
+        <div>
+            <label>What is your zipcode?</label><input type="text" name="zip" pattern="[0-9][0-9][0-9][0-9][A-Z][A-Z]" onchange="evaluateInput(this.value, this.name)">
         </div>
         <div name="ifcondition0">
             <div>
-                <label>"What was the selling price?"</label><input type="number" name="sellingPrice" onchange="evaluateInput(this.value, this.name)">
+                <label>What was the selling price?</label><input type="number" name="sellingPrice" required="true" onchange="evaluateInput(this.value, this.name)">
             </div>
             <div>
-                <label>"Private debts for the sold house:"</label><input type="number" name="privateDebt" onchange="evaluateInput(this.value, this.name)">
+                <label>Private debts for the sold house:</label><input type="number" name="privateDebt" onchange="evaluateInput(this.value, this.name)">
             </div>
             <div>
-                <label>"Value residue:"</label><span type="text" name="valueResidue" readonly="true" value="1"></span>
+                <label>Value residue:</label><span type="text" name="valueResidue" readonly="true" value="1"></span>
             </div>
-        </div>
+        </div><input type="submit" value="Submit">
     </form>
     <body></body>
 </html>

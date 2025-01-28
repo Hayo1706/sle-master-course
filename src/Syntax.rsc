@@ -10,8 +10,9 @@ lexical Str = [\"]![\"]* [\"];
 
 lexical Bool = "true" | "false";
 
-lexical Int = [\-]? [0-9]+; 
+lexical Int = [\-]?[0-9]+; 
 
+lexical Regex = "[\\" ![\n]+ "\\]";
 // boolean, integer, string
 syntax Type   
   = boolean: "boolean"
@@ -21,7 +22,7 @@ syntax Type
 syntax ValidationRule
   = required : "[required]"
   | range : "[" Expr min ".." Expr max "]"
-  | regex : "[" [\\] ![\n]* [\\] "]";
+  | regex : Regex reg;
 
 
 // TODO: answerable question, computed question, block, if-then-else
@@ -37,25 +38,25 @@ syntax Question
 // Think about disambiguation using priorities and associativity
 // and use C/Java style precedence rules (look it up on the internet)
 syntax Expr
-  = var: Id name \ "true" \"false"
-  | Str | Bool | Int |
-  | bracket "(" Expr ")"
-  | "!" Expr       
-    > right Expr "^" Expr
-    > left ( Expr "*" Expr  
-           | Expr "/" Expr
-           )
-    > left ( Expr "+" Expr
-           | Expr "-" Expr
-           )
-    > left ( Expr "\>" Expr
-           | Expr "\<" Expr
-           | Expr "\<=" Expr
-           | Expr "\>=" Expr
-           | Expr "==" Expr
-           | Expr "!=" Expr
-           )
-    > left Expr "&&" Expr
-    > left Expr "||" Expr
+  = bracket "(" Expr ")"
+  | "!" Expr
+  > Int | Bool | Str 
+  > var: Id name \ "true" \"false" \ "required" \ "range" \ "regex" \ "form" \ "if" \ "else"      
+  > right Expr "^" Expr
+  > left ( Expr "*" Expr  
+          | Expr "/" Expr
+          )
+  > left ( Expr "+" Expr
+          | Expr "-" Expr 
+          )
+  > left ( Expr "\>" Expr
+          | Expr "\<" Expr
+          | Expr "\<=" Expr
+          | Expr "\>=" Expr
+          | Expr "==" Expr
+          | Expr "!=" Expr
+          )
+  > left Expr "&&" Expr
+  > left Expr "||" Expr
   ;
 

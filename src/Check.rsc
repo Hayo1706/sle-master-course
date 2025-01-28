@@ -56,6 +56,8 @@ Type typeOf((Expr)`<Expr _> / <Expr _>`, TEnv env) = (Type)`integer`;
 Type typeOf((Expr)`<Expr _> - <Expr _>`, TEnv env) = (Type)`integer`;
 
 
+
+
 /*
  * Checking forms
  */
@@ -182,6 +184,8 @@ set[Message] check((Question)`{ <Question* questions> }`, TEnv env) {
     return messages;
 }
 
+
+
 /*
  * Checking expressions
  */
@@ -231,8 +235,9 @@ set[Message] validateComparisonOperands(Expr left, Expr right, TEnv env) {
 }
 
 set[Message] check((Expr)`<Expr left> \< <Expr right>`, TEnv env) = validateComparisonOperands(left, right, env);
-set[Message] check((Expr)`<Expr left> \> <Expr right>`, TEnv env) = validateComparisonOperands(left, right, env);
 set[Message] check((Expr)`<Expr left> \<= <Expr right>`, TEnv env) = validateComparisonOperands(left, right, env);
+
+set[Message] check((Expr)`<Expr left> \> <Expr right>`, TEnv env) = validateComparisonOperands(left, right, env);
 set[Message] check((Expr)`<Expr left> \>= <Expr right>`, TEnv env) = validateComparisonOperands(left, right, env);
 
 // Helper function to validate arithmetic expressions

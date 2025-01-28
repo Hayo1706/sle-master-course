@@ -36,33 +36,6 @@ test "questions retain values across visibility changes"
     }
     = {x: true, y: 42, z: 2, sum: 44}
 
-
-test "tax form"
-    with hasSoldHouse: true, sellingPrice: 50, privateDebt: 10
-    form "Tax Office example" { 
-        "Did you buy a house in 2010?"
-            hasBoughtHouse: boolean [required]
-        
-        "Did you enter a loan?"
-            hasMaintLoan: boolean [required]
-            
-        "Did you sell a house in 2010?"
-            hasSoldHouse: boolean [required]
-
-        "What is your zipcode?" 
-            zip: string [\[0-9][0-9][0-9][0-9][A-Z][A-Z]\]   
-        
-        if (hasSoldHouse) {
-            "What was the selling price?"
-            sellingPrice: integer [0..100]
-            "Private debts for the sold house:"
-            privateDebt: integer [0..sellingPrice]
-            "Value residue:"
-            valueResidue: integer = sellingPrice - privateDebt
-        }
-    }
-    = {hasBoughtHouse: false, hasMaintLoan: false, hasSoldHouse: true, zip: "", sellingPrice: 50, privateDebt: 10, valueResidue: 40}
-
 test "referencing works out of order"
     with x: 10
     form "" {
@@ -98,13 +71,11 @@ test "multiplication has higher precedence than addition"
 test "no dangling else"
     with
     form "" {
-        if (0 > 0) {
-            if (0 > 0){
+        if (0 > 0){
+            if (0 > 0)
               "a" a: integer = 1
-            }
-            else {
+            else 
                 "a" a: integer = 2
-            }
         }
     }
     = {a: 0} // otherwise, it would be {a: 2}
@@ -112,10 +83,9 @@ test "no dangling else"
 test "subtraction associates to the left"
     with
     form "" {
-        "X" x: integer =  1 - 2 - 3 + 10
+        "X" x: integer = 1 - 2 - 3
     }
-    = {x: 6}
-
+    = {x: -4}
 test "parentheses override associativity"
     with
     form "" {

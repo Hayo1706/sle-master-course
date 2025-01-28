@@ -2,6 +2,7 @@ venv = new Map([
 	["hasBoughtHouse",false],
 	["hasMaintLoan",false],
 	["hasSoldHouse",false],
+	["zip",],
 	["sellingPrice",0],
 	["privateDebt",0],
 	["valueResidue",0],
@@ -28,9 +29,11 @@ function calculate(){
 }
 
 function setContent(){
+	document.getElementsByName("privateDebt")[0].max = venv.get("sellingPrice")
+	document.getElementsByName("privateDebt")[0].min = 0
 	document.getElementsByName("valueResidue")[0].textContent = venv.get("valueResidue");
-	document.getElementsByName("ifcondition0")[0].style.visibility = 
-                          venv.get("hasSoldHouse") ? "visible" : "hidden";
+	document.getElementsByName("ifcondition0")[0].style.visibility = venv.get("hasSoldHouse") ? "visible" : "hidden";
+	Array.prototype.forEach.call(document.getElementsByName("ifcondition0")[0].getElementsByTagName("input"),target => target.disabled = !venv.get("hasSoldHouse"));
 }
 
 function solve(){
