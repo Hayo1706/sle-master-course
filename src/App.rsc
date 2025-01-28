@@ -103,7 +103,7 @@ void viewQuestion((Question)`<Str question> <Id name> : <Type anstype> <Expr exp
 void viewQuestion((Question)`{ <Question* questions>}`, Model model) {
     // Recursively render sub-questions in a block
     ul(() {
-        for (Question sub <- subQuestions) {
+        for (Question sub <- questions) {
             li(() { viewQuestion(sub, model); });
         }
     });
