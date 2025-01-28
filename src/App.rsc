@@ -58,56 +58,53 @@ void view(Model model) {
 Msg(str) updateInt(str name) = Msg(str n) { return updateInt(name, n);};
 
 // fill in: question rendering, but only if they are enabled.
-void viewQuestion(Question q, Model model) {
-      switch (q) {
-        case answerable(Str question, Id name, Type anstype): {
+void viewQuestion((Question)`<Str question> <Id name> <Type anstype>`, Model model) {
+    // Render input fields for answerable questions
+    label("<question>"[1..-1]);
+    switch (anstype) {
+        case (Type)`boolean`:{
+            input(
+                \type("checkbox"),
+                \checked(model.env["<name>"] == vbool(true)),
+                \onClick(updateBool("<name>", !model.env["<name>"].b))
+            );
             
-            // Render input fields for answerable questions
-            label("<question>"[1..-1]);
-                switch (anstype) {
-                    case (Type)`boolean`:{
-                        input(
-                            \type("checkbox"),
-                            \checked(model.env["<name>"] == vbool(true)),
-                            \onClick(updateBool("<name>", !model.env["<name>"].b))
-                        );
-                        
-                    }
-                    case (Type)`integer`:
-                        input(
-                            \type("number"),
-                            \value("<model.env["<name>"].n>"),
-                            \onChange(updateInt("<name>"))
-                        );
-                    case (Type)`string`:
-                        input(
-                            \type("text"),
-                            \value("<model.env["<name>"].s>")
-                        );
-                }
         }
-        case computed(Str text, Id name, Type anstype, Expr expr): {
-            // Render read-only fields for computed questions
-            label("<text>"[1..-1]);
-            str val = "";
-            switch (anstype) {
-                    case (Type)`boolean`:{
-                        val = "<eval(expr, model.env).b>";
-                    }
-                    case (Type)`integer`:
-                        val = "<eval(expr, model.env).n>";
-                    case (Type)`string`:
-                        val = "<eval(expr, model.env).s>";
-                }
-            span(val);
+        case (Type)`integer`:
+            input(
+                \type("number"),
+                \value("<model.env["<name>"].n>"),
+                \onChange(updateInt("<name>"))
+            );
+        case (Type)`string`:
+            input(
+                \type("text"),
+                \value("<model.env["<name>"].s>")
+            );
         }
-        case block(Question* subQuestions): {
-            // Recursively render sub-questions in a block
-            ul(() {
-                for (Question sub <- subQuestions) {
-                    li(() { viewQuestion(sub, model); });
-                }
-            });
+}
+
+void viewQuestion((Question)`<Str question> <Id name> : <Type anstype> <Expr expr>`, Model model) {
+    // Render read-only fields for computed questions
+    label("<text>"[1..-1]);
+    str val = "";
+    switch (anstype) {
+        case (Type)`boolean`:{
+            val = "<eval(expr, model.env).b>";
         }
-    }
+        case (Type)`integer`:
+            val = "<eval(expr, model.env).n>";
+        case (Type)`string`:
+            val = "<eval(expr, model.env).s>";
+        }
+    span(val);
+}
+
+void viewQuestion((Question)`{ <Question* questions>}`, Model model) {
+    // Recursively render sub-questions in a block
+    ul(() {
+        for (Question sub <- subQuestions) {
+            li(() { viewQuestion(sub, model); });
+        }
+    });
 }
