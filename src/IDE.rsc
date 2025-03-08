@@ -14,10 +14,10 @@ import List;
 import vis::Charts;
 
 import Syntax;
-import Compile;
-import Check;
+import CompileWithValidation;
+import CheckValidationRules;
 import Resolve;
-import App;
+import AppWithValidation;
 import Message;
 import ParseTree;
 import util::TestQL;

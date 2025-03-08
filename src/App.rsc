@@ -9,6 +9,7 @@ import salix::Index;
 import Eval;
 import Syntax;
 import IO;
+import Syntax;
 
 import String;
 
@@ -58,7 +59,7 @@ void view(Model model) {
 Msg(str) updateInt(str name) = Msg(str n) { return updateInt(name, n);};
 
 // fill in: question rendering, but only if they are enabled.
-void viewQuestion((Question)`<Str question> <Id name> <Type anstype>`, Model model) {
+void viewQuestion((Question)`<Str question> <Id name> : <Type anstype>`, Model model) {
     // Render input fields for answerable questions
     label("<question>"[1..-1]);
     switch (anstype) {
@@ -84,9 +85,9 @@ void viewQuestion((Question)`<Str question> <Id name> <Type anstype>`, Model mod
         }
 }
 
-void viewQuestion((Question)`<Str question> <Id name> : <Type anstype> <Expr expr>`, Model model) {
+void viewQuestion((Question)`<Str question> <Id name> : <Type anstype> = <Expr expr>`, Model model) {
     // Render read-only fields for computed questions
-    label("<text>"[1..-1]);
+    label("<question>"[1..-1]);
     str val = "";
     switch (anstype) {
         case (Type)`boolean`:{
